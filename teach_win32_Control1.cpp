@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "teach_win32_Control1.h"
 
+#include<fstream>//文件I/O
+
 #define MAX_LOADSTRING 100
 
 // 全局变量: 
@@ -227,7 +229,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     }
     return (INT_PTR)FALSE;//没有操作返回FALSE
 }
-TCHAR str[1024] = { 0 };
+wchar_t str[1024] = { 0 };
 //自己的对话框处理函数
 INT_PTR CALLBACK myDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -307,34 +309,43 @@ INT_PTR CALLBACK myDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
 			//---第一栏统计
 			_tcscpy_s(str, _T("家庭成员:"));//向字符串中拷贝一行文字
 			if (IsDlgButtonChecked(hDlg, 6001))//IsDlgButtonChecked()判断某一个按钮是否被选中
-				_tcscat(str, _T("宝宝"));
+				_tcscat_s(str, _T("宝宝"));
 			else if (IsDlgButtonChecked(hDlg, 6002))
-				_tcscat(str, _T("爸爸"));
+				_tcscat_s(str, _T("爸爸"));
 			else if (IsDlgButtonChecked(hDlg, 6003))
-				_tcscat(str, _T("妈妈"));
+				_tcscat_s(str, _T("妈妈"));
 			//---第二栏统计
-			_tcscat(str, _T("  学历："));
+			_tcscat_s(str, _T("  学历："));
 			if (IsDlgButtonChecked(hDlg, 6004))
-				_tcscat(str, _T("大专"));
+				_tcscat_s(str, _T("大专"));
 			else if (IsDlgButtonChecked(hDlg, 6005))
-				_tcscat(str, _T("本科"));
+				_tcscat_s(str, _T("本科"));
 			else if (IsDlgButtonChecked(hDlg, 6006))
-				_tcscat(str, _T("研究生"));
+				_tcscat_s(str, _T("研究生"));
 			//---第三栏统计
-			_tcscat(str, _T("  兴趣爱好："));
+			_tcscat_s(str, _T("  兴趣爱好："));
 			if (IsDlgButtonChecked(hDlg, 6007))
-				_tcscat(str, _T("画画 "));
+				_tcscat_s(str, _T("画画 "));
 			if (IsDlgButtonChecked(hDlg, 6008))
-				_tcscat(str, _T("看书 "));
+				_tcscat_s(str, _T("看书 "));
 			if (IsDlgButtonChecked(hDlg, 6009))
-				_tcscat(str, _T("写代码 "));
+				_tcscat_s(str, _T("写代码 "));
 
 			//把统计出来的消息发送到对话框中
 			SetDlgItemText(hDlg, 6010, str);
 			//成功生成
 			MessageBox(0, _T("成功生成"), 0, 0);
 			SetDlgItemText(hDlg, 6005, _T("更改"));//通过点一下生成后某个控件的名字标签改动
+			//生成一个文件，并把TCHAR输入里面 待解决
+			//方法一：将wchar_t转换成char存入
+			char str_char[1024] = { 0 };
+			WideCharToMultiByte(CP_ACP, 0, str, _tcslen(str) + 1, str_char, 256, NULL, NULL);
+			std::ofstream outfile;
+			outfile.open("file.txt");
+			outfile << str_char;
+			outfile.close();
 			break;
+			//注：LINUX系统中没有TCHAR的宏定义 尽量使用wchar_t  L
 		}
 
 		if (LOWORD(wParam) == IDOK /*确定*/ || LOWORD(wParam) == IDCANCEL)
