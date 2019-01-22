@@ -220,6 +220,30 @@ INT_PTR CALLBACK dlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			GetTempPath(1023, Arr);//得到临时路径
 			SetDlgItemText(hDlg, 6002, Arr);//往文本框设置文本
 			break;
+		case 7005:
+			char fileStr[1024] = { 0 };
+			HANDLE hFile1 = CreateFile(_T("当前目录下的所有文件名.txt"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);//创建一个要写入的文件
+			WIN32_FIND_DATAA fileData;//文件的数据结构
+			//得到文件夹下的第一个文件名
+			HANDLE hFile = FindFirstFileA("./*.*", &fileData);//因为这个是char，多字节字符，所以在FindFirstFile后面+A
+			//把fileData结构体下面的文件名拷贝到fileStr里面去
+			//memmove(fileStr, fileData.cFileName, sizeof(char)*strlen(fileData.cFileName));
+			strcpy_s(fileStr, fileData.cFileName);
+			strcat_s(fileStr, "\r\n");//注意txt里面需要\r\n为什么 待决解
+			DWORD len = 0;
+			WriteFile(hFile1, fileStr, strlen(fileStr), &len, nullptr);
+			while (FindNextFileA(hFile,&fileData))
+			{
+				memset(fileStr, 0, sizeof(char) * 1024);
+				strcpy_s(fileStr, fileData.cFileName);
+				strcat_s(fileStr, "\r\n");
+				WriteFile(hFile1, fileStr, strlen(fileStr), &len, nullptr);
+			}
+			CloseHandle(hFile1);
+			CloseHandle(hFile);
+
+
+			break;
 		}
 		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
 		{
@@ -228,7 +252,7 @@ INT_PTR CALLBACK dlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			//1.定义用于文件操作的句柄
 			HANDLE hFile = nullptr;
 			//2.创建文件
-			hFile = CreateFile(_T("file.txt"), GENERIC_READ | GENERIC_WRITE,FILE_SHARE_READ,nullptr, OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,nullptr);//类似于fopen和.open()为什么OPEN_ALWAYS会清空原有的字符 待解决 已解决
+			hFile = CreateFile(_T("file.txt"), GENERIC_READ | GENERIC_WRITE,FILE_SHARE_READ,nullptr, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,nullptr);//类似于fopen和.open() OPEN_ALWAYS表示没有文件会创建 有文件会打开新打开文件会覆盖 不关闭文件会追加 待解决 已解决 CREATE_ALWAYS会覆盖
 			//GENERIC_READ | GENERIC_WRITE表示可读可写
 			/*
 HANDLE CreateFileA(
@@ -242,15 +266,28 @@ HANDLE CreateFileA(
 );
 			*/
 			//3.读写
-			char s[1024] = "hello world!!你好ss";
+			char s[1024] = "hello world!!";
 			DWORD len = 0;
 			//WriteFile(hFile,s,strlen(s),&len,nullptr);//写入文件的时候是以多字节写入的，而TCHAR是unicode款字节，即一个字符占两个字节所以只能写入一半，
 			//所以推荐使用多字节写入文件，即s的类型为char
+			//SetFilePointer(hFile, 0, nullptr, FILE_END);//通过OPEN_ALWAYS+移动文件指针可以实现追加//OPEN_ALWAYS不关闭文件则位追加
+			WriteFile(hFile, s, strlen(s), &len, nullptr);
+			//设置偏移量--测试
+			//SetFilePointer(hFile,//文件句柄
+			//	2,//低32位文件偏移量
+			//	0,//高32位文件偏移量（无效）
+			//	FILE_BEGIN//从文件的头处开始偏移
+			//);
+			/*WriteFile(hFile, "移", strlen(s), &len, nullptr);*/
+			//4.关闭文件句柄
+			CloseHandle(hFile);//如果后面需要读取文件，则需要关闭文件句柄，不然文件指针就会一直停留在最后一个输入的字符后面，影响文件的读取
+
+			hFile = CreateFile(_T("file.txt"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 			char s1[1024] = { 0 };
 			ReadFile(hFile, s1, 1023, &len, nullptr);//读入文件
-			strcat_s(s, "连接");
 			MessageBoxA(0, s1, 0, 0);//使用多字节显示
-			WriteFile(hFile, s, strlen(s), &len, nullptr);
+			
+			CloseHandle(hFile);
 			/*
 	BOOL WriteFile(
   HANDLE       hFile,//操作的文件句柄
@@ -260,8 +297,7 @@ HANDLE CreateFileA(
   LPOVERLAPPED lpOverlapped
 );
 			*/
-			//4.关闭文件句柄
-			CloseHandle(hFile);
+			
 			return (INT_PTR)TRUE;
 		}
 		break;
@@ -283,4 +319,5 @@ void createContorl(HWND hParentWnd)
 	CreateWindow(_T("button"), _T("得到临时路径"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 10, 200, 100, 30, hParentWnd, (HMENU)7004, hInst, nullptr);//创建一个按钮
 	CreateWindow(_T("edit"), _T("路径显示"), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_MULTILINE, 120, 150, 300, 80, hParentWnd, (HMENU)6002, hInst, nullptr);//创建一个文本框
 
+	CreateWindow(_T("button"), _T("得到文件夹下的所有文件名"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 10, 250, 200, 30, hParentWnd, (HMENU)7005, hInst, nullptr);//创建一个按钮
 }
