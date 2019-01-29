@@ -89,7 +89,7 @@ int main()
 	//存储端口号，注意：网络上的数值方式（大端：先存高位再存低位）和pc的数值方式（小端：先存低位再存高位）是有区别的,通过htons来转换
 	severAddr.sin_port = htons(8888);//The htons function converts a u_short from host to TCP/IP network byte order (which is big-endian).
 	//存储ip地址，利用inet_addr()转换成4字节
-	severAddr.sin_addr.S_un.S_addr = inet_addr("192.168.191.8");//The inet_addr function converts a string containing an IPv4 dotted-decimal address into a proper address for the IN_ADDR structure.
+	severAddr.sin_addr.S_un.S_addr = inet_addr("192.168.1.4");//The inet_addr function converts a string containing an IPv4 dotted-decimal address into a proper address for the IN_ADDR structure.
     
 	//2.（服务器）绑定地址
 	int severBind=bind(severSocket,(sockaddr*)&severAddr,sizeof(severAddr));

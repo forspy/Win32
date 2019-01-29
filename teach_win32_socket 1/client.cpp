@@ -26,7 +26,7 @@ int main()
 	}
 
 	//1.创建socket
-	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	SOCKET severSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	/*
 	SOCKET WSAAPI socket(
 	int af,//地址族规范,决定了socket的地址类型 AF_INET AF_INET6   ,AF_INET表示ipv4地址（32位），端口号（16位）
@@ -35,7 +35,7 @@ int main()
 	);
 	*/
 	//SOCKET实质上是一个unsigned int 用来标记
-	if (clientSocket == INVALID_SOCKET)
+	if (severSocket == INVALID_SOCKET)
 	{
 		printf("socket创建失败\n");
 		WSACleanup();//关闭socket请求
@@ -62,12 +62,12 @@ int main()
 	//存储端口号，注意：网络上的数值方式（大端：先存高位再存低位）和pc的数值方式（小端：先存低位再存高位）是有区别的,通过htons来转换
 	clientAddr.sin_port = htons(8888);//The htons function converts a u_short from host to TCP/IP network byte order (which is big-endian).
 									 //存储ip地址，利用inet_addr()转换成4字节
-	clientAddr.sin_addr.S_un.S_addr = inet_addr("192.168.191.8");//服务端的IP地址 
+	clientAddr.sin_addr.S_un.S_addr = inet_addr("192.168.1.4");//服务端的IP地址 
 
 
 
 	//4.(客户端)连接
-	int clientConnect = connect(clientSocket, (sockaddr*)&clientAddr, sizeof(clientAddr));//建立于服务器的连接
+	int clientConnect = connect(severSocket, (sockaddr*)&clientAddr, sizeof(clientAddr));//建立于服务器的连接，severSocket连接的时候用的是服务端的ip及端口
 	/*The connect function establishes a connection to a specified socket.
 	int WSAAPI connect(
   SOCKET         s,
@@ -78,7 +78,7 @@ int main()
 	if (clientConnect == SOCKET_ERROR)
 	{
 		printf("socket连接失败\n");
-		closesocket(clientSocket);//先关闭socket
+		closesocket(severSocket);//先关闭socket
 		WSACleanup();//再关闭client socket请求
 		return -1;
 	}
@@ -94,24 +94,24 @@ int main()
 		gets_s(buff, sizeof(buff));//scanf_s/cin不能区别空格，或者使用cin.getline()
 		//scanf_s("%s", buff,sizeof(buff)-1);
 		//发送
-		if (send(clientSocket, buff, sizeof(buff), 0) > 0)
+		if (send(severSocket, buff, sizeof(buff), 0) > 0)
 		{
 			printf("发送消息成功\n");
 		}
 
 		/*The send function sends data on a connected socket.
 		int WSAAPI send(
-  SOCKET     s,//客户端的socket标识
+  SOCKET     s,//客户端的socket标识，表示要发送的地址端口
   const char *buf,//缓存字符指针
   int        len,//长度
   int        flags/收发方式，0表示默认收发方式，一次都收完，返回值>0表示收到数据，==0表示没有收到数据或者收到数据为空，出错返回负数
 );//参数设置和recv一样
 		*/
-		if (recv(clientSocket, buff, sizeof(buff), 0) > 0)//接收服务端的信息，为什么是recv clientSocket 待解决 而且只能你发一条我发一条，待解决
+		if (recv(severSocket, buff, sizeof(buff), 0) > 0)//接收服务端的信息，为什么是recv severSocket 待解决 而且只能你发一条我发一条，待解决 把所有的clientSocket换成severStocket 就明白了这只是一个变量用来和IP和端口绑定
 			printf(">>:%s\n", buff);
 	}
 	//6.关闭socket
-	closesocket(clientSocket);
+	closesocket(severSocket);
 	WSACleanup();
 	return 0;
 	//如果是server项目为主启动项，那么要启动client时点击client--调试--启动新实例
