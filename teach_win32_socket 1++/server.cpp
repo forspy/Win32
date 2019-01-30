@@ -90,7 +90,7 @@ int main()
 	//存储端口号，注意：网络上的数值方式（大端：先存高位再存低位）和pc的数值方式（小端：先存低位再存高位）是有区别的,通过htons来转换
 	severAddr.sin_port = htons(8888);//The htons function converts a u_short from host to TCP/IP network byte order (which is big-endian).
 	//存储ip地址，利用inet_addr()转换成4字节
-	severAddr.sin_addr.S_un.S_addr = inet_addr("192.168.1.4");//The inet_addr function converts a string containing an IPv4 dotted-decimal address into a proper address for the IN_ADDR structure.
+	severAddr.sin_addr.S_un.S_addr = inet_addr("192.168.0.105");//The inet_addr function converts a string containing an IPv4 dotted-decimal address into a proper address for the IN_ADDR structure.
     
 	//2.（服务器）绑定地址
 	int severBind=bind(severSocket,(sockaddr*)&severAddr,sizeof(severAddr));
@@ -159,7 +159,7 @@ int main()
 	HANDLE handle1 = CreateThread(nullptr,//指向一个结构LPSECURITY_ATTRIBUTES   ，必须为空
 		0,//新线程的初始化堆栈大小，默认0
 		(LPTHREAD_START_ROUTINE)sendMessage,//对应的线程函数名
-		(LPVOID)index,//传给线程（回调）函数的参数
+		(LPVOID)index,//传给线程（回调）函数的参数，多个参数传入结构
 		0,//线程的参数
 		nullptr//线程的ID,因为设置了句柄，所以不需要
 	);
@@ -168,7 +168,7 @@ int main()
 	while (true)
 	{
 		memset(buff, 0, sizeof(buff));
-		if (recv(clientSocket, buff, sizeof(buff), 0) > 0)
+		if (recv(clientSocket, buff, sizeof(buff), 0) > 0)//多个客户端对一个服务器只需要再接收的时候开线程接收就行，来一个客户端就开一个线程
 			printf(">>:%s\n", buff);
 		/*The recv function receives data from a connected socket or a bound connectionless socket.
 		int recv(
