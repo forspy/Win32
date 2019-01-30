@@ -45,7 +45,7 @@ int main()
 	}
 
 	//初始化协议
-	SOCKADDR_IN clientAddr = { 0 };
+	SOCKADDR_IN severAddr = { 0 };
 	/*
 	typedef struct sockaddr_in {
 
@@ -60,16 +60,16 @@ int main()
 	CHAR sin_zero[8];
 	} SOCKADDR_IN, *PSOCKADDR_IN;
 	*/
-	clientAddr.sin_family = AF_INET;
+	severAddr.sin_family = AF_INET;
 	//存储端口号，注意：网络上的数值方式（大端：先存高位再存低位）和pc的数值方式（小端：先存低位再存高位）是有区别的,通过htons来转换
-	clientAddr.sin_port = htons(8888);//The htons function converts a u_short from host to TCP/IP network byte order (which is big-endian).
+	severAddr.sin_port = htons(8888);//The htons function converts a u_short from host to TCP/IP network byte order (which is big-endian).
 									 //存储ip地址，利用inet_addr()转换成4字节
-	clientAddr.sin_addr.S_un.S_addr = inet_addr("192.168.1.4");//服务端的IP地址 
+	severAddr.sin_addr.S_un.S_addr = inet_addr("192.168.0.105");//服务端的IP地址 
 
 
 
-	//4.(客户端)连接
-	int clientConnect = connect(severSocket, (sockaddr*)&clientAddr, sizeof(clientAddr));//建立于服务器的连接，severSocket连接的时候用的是服务端的ip及端口
+	//4.(客户端)连接  连接前会三次握手
+	int clientConnect = connect(severSocket, (sockaddr*)&severAddr, sizeof(severAddr));//建立于服务器的连接，severSocket连接的时候用的是服务端的ip及端口
 	/*The connect function establishes a connection to a specified socket.
 	int WSAAPI connect(
   SOCKET         s,
